@@ -15,6 +15,8 @@ For example, every numeric value from 0.11 was converted to float, as this makes
 
 This set of tools will allow you to backup, wipe and restore documents from your database.
 
+![CleanShot 2022-01-04 at 21 32 13@2x](https://user-images.githubusercontent.com/19310830/148120405-95094b8c-e3fc-4ce4-8fb6-f141b32c8113.png)
+
 1. Backup all documents from this collection into CSV file:
 
 ```bash
