@@ -17,14 +17,15 @@ program
  .requiredOption("-k, --api-key <apiKey>", "Appwrite API Key")
  .requiredOption("-p, --project <projectId>", "Project ID")
  .requiredOption("-c, --collection <collectionId>", "Collection ID")
+ .requiredOption("-d, --database <databaseId>", "Database ID")
  .option("-l, --limit <limit>", "Documents limit per request")
  .option("-f, --file <file>", "Filename you want to restore")
  .action(
-  async ({ action, endpoint, apiKey, project, collection, limit, file }) => {
-   limit = limit ? limit : 10;
+  async ({ action, endpoint, apiKey, project, collection, database, limit, file }) => {
+   limit = limit ? limit : 100;
 
    const sdk = new appwrite.Client();
-   const db = new appwrite.Database(sdk);
+   const db = new appwrite.Databases(sdk);
 
    sdk.setEndpoint(endpoint).setProject(project).setKey(apiKey);
 
@@ -34,10 +35,10 @@ program
     let documentsFound = 0;
     let documentsAmount = 0;
     do {
-     const appwriteResponse = await db.listDocuments(collection, [], limit);
+     const appwriteResponse = await db.listDocuments(database, collection, [ appwrite.Query.limit(limit) ]);
 
      for (const document of appwriteResponse.documents) {
-      await db.deleteDocument(collection, document.$id);
+      await db.deleteDocument(database, collection, document.$id);
       documentsAmount++;
      }
 
@@ -48,7 +49,7 @@ program
    } else if (action === "documents-backup") {
     console.log("Backing up documents, this can take a while ...");
 
-    const fileName = `backup_${Date.now()}.csv`;
+    const fileName = `backup_${database}_${collection}_${Date.now()}.csv`;
 
     const writer = csvWriter();
     writer.pipe(fs.createWriteStream(fileName));
@@ -56,29 +57,29 @@ program
     let cursor = undefined;
     let documentsAmount = 0;
     do {
-     const appwriteResponse = await db.listDocuments(
-      collection,
-      [],
-      limit,
-      undefined,
-      cursor,
-      "after"
-     );
+      const queries = [
+        appwrite.Query.limit(limit)
+      ];
+
+      if(cursor) {
+        queries.push(appwrite.Query.cursorAfter(cursor));
+      }
+
+     const appwriteResponse = await db.listDocuments(database, collection, queries);
 
      for (const document of appwriteResponse.documents) {
       const obj = {
        id: document["$id"],
-       read: JSON.stringify(document["$read"]),
-       write: JSON.stringify(document["$write"]),
+       permissions: JSON.stringify(document["$permissions"]),
        data: null,
       };
 
       const documentCopy = { ...document };
-      delete documentCopy["$internalId"];
-      delete documentCopy["$collection"];
+      delete documentCopy["$collectionId"];
+      delete documentCopy["$createdAt"];
+      delete documentCopy["$updatedAt"];
       delete documentCopy["$id"];
-      delete documentCopy["$read"];
-      delete documentCopy["$write"];
+      delete documentCopy["$permissions"];
       obj.data = JSON.stringify(documentCopy);
 
       writer.write(obj);
@@ -131,15 +132,14 @@ program
      csvObject.end();
 
      const id = row["id"];
-     const read = JSON.parse(row["read"]);
-     const write = JSON.parse(row["write"]);
+     const permissions = JSON.parse(row["permissions"]);
 
      await db.createDocument(
+      database,
       collection,
       id,
       JSON.parse(row["data"]),
-      read,
-      write
+      permissions
      );
 
      totalRows++;
