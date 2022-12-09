@@ -76,6 +76,7 @@ program
 
       const documentCopy = { ...document };
       delete documentCopy["$collectionId"];
+      delete documentCopy["$databaseId"];
       delete documentCopy["$createdAt"];
       delete documentCopy["$updatedAt"];
       delete documentCopy["$id"];
@@ -134,11 +135,13 @@ program
      const id = row["id"];
      const permissions = JSON.parse(row["permissions"]);
 
+     const json = JSON.parse(row["data"]);
+
      await db.createDocument(
       database,
       collection,
       id,
-      JSON.parse(row["data"]),
+      json,
       permissions
      );
 
