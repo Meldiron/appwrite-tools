@@ -127,7 +127,7 @@ func (m model) View() string {
 		Foreground(lipgloss.Color("#ffffff")).
 		PaddingLeft(1).
 		PaddingRight(1)
-	b.WriteString(style.Render("Appwrite details"))
+	b.WriteString(style.Render("[3/3] Appwrite details"))
 
 	b.WriteString("\n\n")
 
@@ -152,13 +152,14 @@ func (m model) View() string {
 }
 
 type ConnectResult struct {
-	Endpoint string
-	ApiKey   string
+	Endpoint  string
+	ProjectId string
+	ApiKey    string
 }
 
-func Run() ConnectResult {
+func Run(endpointValue string, apiKeyValue string, projectIdValue string) ConnectResult {
 	m := model{
-		inputs: make([]textinput.Model, 2),
+		inputs: make([]textinput.Model, 3),
 	}
 
 	var t textinput.Model
@@ -170,13 +171,24 @@ func Run() ConnectResult {
 		switch i {
 		case 0:
 			t.Placeholder = "Endpoint"
-			t.Focus()
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
+			if endpointValue != "" {
+				t.SetValue(endpointValue)
+			}
 		case 1:
+			t.Placeholder = "Project ID"
+			if projectIdValue != "" {
+				t.SetValue(projectIdValue)
+			}
+			t.Focus()
+		case 2:
 			t.Placeholder = "API key"
 			t.EchoMode = textinput.EchoPassword
 			t.EchoCharacter = '•'
+			if apiKeyValue != "" {
+				t.SetValue(apiKeyValue)
+			}
 		}
 
 		m.inputs[i] = t
@@ -188,7 +200,8 @@ func Run() ConnectResult {
 	}
 
 	return ConnectResult{
-		Endpoint: m.inputs[0].Value(),
-		ApiKey:   m.inputs[1].Value(),
+		Endpoint:  m.inputs[0].Value(),
+		ProjectId: m.inputs[1].Value(),
+		ApiKey:    m.inputs[2].Value(),
 	}
 }

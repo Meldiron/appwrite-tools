@@ -60,7 +60,7 @@ func Run() string {
 	}
 
 	m := model{list: list.New(items, list.NewDefaultDelegate(), 0, 0), Quit: false}
-	m.list.Title = "Pick action"
+	m.list.Title = "[1/3] Pick action"
 
 	p := tea.NewProgram(&m, tea.WithAltScreen())
 
