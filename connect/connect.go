@@ -181,7 +181,6 @@ func Run(endpointValue string, apiKeyValue string, projectIdValue string) Connec
 			if projectIdValue != "" {
 				t.SetValue(projectIdValue)
 			}
-			t.Focus()
 		case 2:
 			t.Placeholder = "API key"
 			t.EchoMode = textinput.EchoPassword

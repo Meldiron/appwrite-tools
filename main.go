@@ -8,6 +8,7 @@ import (
 	"github.com/meldiron/appwrite-tools/action"
 	"github.com/meldiron/appwrite-tools/connect"
 	"github.com/meldiron/appwrite-tools/resource"
+	"github.com/meldiron/appwrite-tools/runner"
 )
 
 func main() {
@@ -93,5 +94,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	println(actionValue, resourceValue, endpointValue, projectIdParam, apiKeyValue)
+	result := runner.Run(runner.RunnerOptions{
+		Endpoint:  endpointValue,
+		ProjectId: projectIdValue,
+		ApiKey:    apiKeyValue,
+		Action:    actionValue,
+		Resource:  resourceValue,
+	})
+
+	if result != "" {
+		println("Backup stored in " + result)
+	}
 }
